@@ -8,7 +8,7 @@ load_dotenv()
 
 
 # Initialize OpenAI client
-api_key = os.getenv("OPENAI_API_KEY")
+api_key = st.secrets.openai.OPENAI_API_KEY
 client = openai.Client(api_key=api_key)
 
 # Define the first page
