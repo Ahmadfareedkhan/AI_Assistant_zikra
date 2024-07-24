@@ -1,6 +1,2 @@
-gradio
 openai
-streamlit 
-time
-random
-os 
+streamlit
