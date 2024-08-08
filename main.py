@@ -15,13 +15,13 @@ intro_message = "Hello! I am the front desk assistant for Zikra InfoTech. How ca
 request_name_email_message = "Can I please have your name and email address to assist you better?"
 
 # Function to fetch live stock price
-def get_stock_price(stock_symbol):
-    try:
-        stock = yf.Ticker(stock_symbol)
-        todays_data = stock.history(period='1d')
-        return todays_data['Close'][0]
-    except Exception as e:
-        return str(e)
+# def get_stock_price(stock_symbol):
+#     try:
+#         stock = yf.Ticker(stock_symbol)
+#         todays_data = stock.history(period='1d')
+#         return todays_data['Close'][0]
+#     except Exception as e:
+#         return str(e)
 
 # Streamlit app
 st.title("Chat with Zikra InfoTech Assistant")
