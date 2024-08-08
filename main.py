@@ -11,63 +11,75 @@ load_dotenv()
 api_key = st.secrets.openai.OPENAI_API_KEY
 client = openai.Client(api_key=api_key)
 
-# Define the first page
-def chat_with_assistant_1():
-    st.title("Sales Outreach")
+intro_message = "Hello! I am the front desk assistant for Zikra InfoTech. How can I assist you today?"
+request_name_email_message = "Can I please have your name and email address to assist you better?"
 
-    intro_messages = [
-        "Hello! This is {assistant_name} from {business_name}, may I speak with {lead_name}?",
-        "Good day! {lead_name}, this is {assistant_name} from {business_name}. How are you today?",
-        "Hi {lead_name}, I'm {assistant_name} from {business_name}. Do you have a moment to chat?",
-        "Greetings {lead_name}! This is {assistant_name} from {business_name}. Can we talk briefly?",
-        "Hello {lead_name}, {assistant_name} here from {business_name}. Is this a good time to speak?"
-    ]
+# Function to fetch live stock price
+def get_stock_price(stock_symbol):
+    try:
+        stock = yf.Ticker(stock_symbol)
+        todays_data = stock.history(period='1d')
+        return todays_data['Close'][0]
+    except Exception as e:
+        return str(e)
 
-    if 'started' not in st.session_state or not st.session_state.started:
-        with st.form(key='setup_form'):
-            st.header("Setup Chat")
+# Streamlit app
+st.title("Chat with Zikra InfoTech Assistant")
+
+if 'started' not in st.session_state or not st.session_state.started:
+    # Initialize the conversation
+    thread = client.beta.threads.create(
+        messages=[
+            {
+                "role": "assistant",
+                "content": intro_message
+            }
+        ]
+    )
+
+    st.session_state.thread_id = thread.id
+    st.session_state.assistant_id = 'asst_IyXGpxWwdLrCmhvlmlYURn3K'
+    st.session_state.history = [{'role': 'assistant', 'content': intro_message}]
+    st.session_state.started = True
+    st.experimental_rerun()
+else:
+    # Display the chat history
+    for message in st.session_state.history:
+        if message['role'] == 'user':
+            st.markdown(f"**You:** {message['content']}")
+        else:
+            st.markdown(f"**Assistant:** {message['content']}")
+
+    # Input box for user messages
+    user_input = st.text_input("Type your message here:")
+
+    if st.button("Send"):
+        if user_input:
+            # Check if the user has provided their name and email
+            if 'name' not in st.session_state or 'email' not in st.session_state:
+                if "name" in user_input.lower() and "email" in user_input.lower():
+                    st.session_state.name = user_input.split("name is ")[1].split()[0]
+                    st.session_state.email = user_input.split("email is")[1].split()[0]
+                    response_message = f"Thank you! How can I assist you today, {st.session_state.name}?"
+                else:
+                    response_message = request_name_email_message
+                
+                st.session_state.history.append({'role': 'user', 'content': user_input})
+                st.session_state.history.append({'role': 'assistant', 'content': response_message})
             
-            assistant_name = st.text_input("Assistant Name:", "John Doe")
-            business_name = st.text_input("Business Name:", "Zikra Infotech LLC")
-            lead_name = st.text_input("Lead Name:", "Jane Smith")
-            
-            submit_button = st.form_submit_button("Start Chat")
-            
-            if submit_button:
-                selected_message = random.choice(intro_messages).format(
-                    assistant_name=assistant_name,
-                    business_name=business_name,
-                    lead_name=lead_name
-                )
-
-                # Create a thread with the selected message
-                thread = client.beta.threads.create(
-                    messages=[
-                        {
-                            "role": "assistant",
-                            "content": selected_message
-                        }
-                    ]
-                )
-
-                st.session_state.thread_id = thread.id
-                st.session_state.assistant_id = 'asst_qhlnpeI8umyoDQzQppBB8E7S'
-                st.session_state.history = [{'role': 'assistant', 'content': selected_message}]
-                st.session_state.started = True
-                st.rerun()
-    else:
-        # Display the chat history
-        for message in st.session_state.history:
-            if message['role'] == 'user':
-                st.markdown(f"**You:** {message['content']}")
+            # elif "stock price" in user_input.lower():
+            #     # Extract the stock symbol from the user's input
+            #     words = user_input.split()
+            #     stock_symbol = words[-1].upper()
+            #     stock_price = get_stock_price(stock_symbol)
+            #     if isinstance(stock_price, float):
+            #         response_message = f"The current price of {stock_symbol} is ${stock_price:.2f}."
+            #     else:
+            #         response_message = f"Could not retrieve the price for {stock_symbol}. Error: {stock_price}"
+                
+            #     st.session_state.history.append({'role': 'user', 'content': user_input})
+            #     st.session_state.history.append({'role': 'assistant', 'content': response_message})
             else:
-                st.markdown(f"**Assistant:** {message['content']}")
-
-        # Input box for user messages
-        user_input = st.text_input("Type your message here:")
-
-        if st.button("Send"):
-            if user_input:
                 message = client.beta.threads.messages.create(
                     thread_id=st.session_state.thread_id,
                     role="user",
@@ -90,101 +102,5 @@ def chat_with_assistant_1():
 
                 st.session_state.history.append({'role': 'user', 'content': user_input})
                 st.session_state.history.append({'role': 'assistant', 'content': current_message.content[0].text.value})
-                st.rerun()
-
-# Define the second page
-def chat_with_assistant_2():
-    st.title("Sales Outreach Followup")
-
-    intro_messages = [
-        "Hi, this is {assistant_name} from {business_name}. I'm calling to follow up on your recent interest in {service_name}. Do you have a moment to discuss it further?",
-        "Hello, this is {assistant_name} from {business_name}. I noticed you expressed interest in {service_name}, and I wanted to see if you have a few minutes to chat about it.",
-        "Good day! This is {assistant_name} from {business_name}. I'm reaching out to follow up on your interest in {service_name}. Do you have a brief moment to talk?",
-        "Hi there, this is {assistant_name} with {business_name}. I saw that you were interested in {service_name}, and I wanted to follow up with you. Do you have a couple of minutes to discuss?",
-        "Hello, this is {assistant_name} from {business_name}. I'm following up on your inquiry about {service_name}. Do you have some time now to discuss it further?"
-    ]
-
-    if 'started' not in st.session_state or not st.session_state.started:
-        with st.form(key='setup_form'):
-            st.header("Setup Chat")
             
-            assistant_name = st.text_input("Assistant Name:", "John Doe")
-            business_name = st.text_input("Business Name:", "Zikra Infotech LLC")
-            lead_name = st.text_input("Lead Name:", "Jane Smith")
-            service_name = st.text_input("Service Name:", "Z360 Management System")
-            
-            submit_button = st.form_submit_button("Start Chat")
-            
-            if submit_button:
-                selected_message = random.choice(intro_messages).format(
-                    assistant_name=assistant_name,
-                    business_name=business_name,
-                    lead_name=lead_name,
-                    service_name=service_name
-                )
-
-                # Create a thread with the selected message
-                thread = client.beta.threads.create(
-                    messages=[
-                        {
-                            "role": "assistant",
-                            "content": selected_message
-                        }
-                    ]
-                )
-
-                st.session_state.thread_id = thread.id
-                st.session_state.assistant_id = 'asst_GkETAUo0XlRltW8MYVzdMcha'
-                st.session_state.history = [{'role': 'assistant', 'content': selected_message}]
-                st.session_state.started = True
-                st.rerun()
-    else:
-        # Display the chat history
-        for message in st.session_state.history:
-            if message['role'] == 'user':
-                st.markdown(f"**You:** {message['content']}")
-            else:
-                st.markdown(f"**Assistant:** {message['content']}")
-
-        # Input box for user messages
-        user_input = st.text_input("Type your message here:")
-
-        if st.button("Send"):
-            if user_input:
-                message = client.beta.threads.messages.create(
-                    thread_id=st.session_state.thread_id,
-                    role="user",
-                    content=user_input
-                )
-
-                run = client.beta.threads.runs.create(
-                    thread_id=st.session_state.thread_id,
-                    assistant_id=st.session_state.assistant_id,
-                )
-
-                while True:
-                    run = client.beta.threads.runs.retrieve(thread_id=st.session_state.thread_id, run_id=run.id)
-                    if run.status == 'completed':
-                        break
-                    time.sleep(0.5)
-
-                messages = client.beta.threads.messages.list(thread_id=st.session_state.thread_id)
-                current_message = messages.data[0]
-
-                st.session_state.history.append({'role': 'user', 'content': user_input})
-                st.session_state.history.append({'role': 'assistant', 'content': current_message.content[0].text.value})
-                st.rerun()
-
-# Dictionary to map pages to their respective functions
-pages = {
-    "Assistant: Sales Outreach": chat_with_assistant_1,
-    "Assistant: Sales Outreach Followup": chat_with_assistant_2
-}
-
-# Sidebar for navigation
-st.sidebar.title("Navigation")
-selection = st.sidebar.selectbox("Go to", list(pages.keys()))
-
-# Display the selected page with the respective function
-page = pages[selection]
-page()
+            st.experimental_rerun()
