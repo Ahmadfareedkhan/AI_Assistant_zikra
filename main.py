@@ -41,7 +41,7 @@ if 'started' not in st.session_state or not st.session_state.started:
     st.session_state.assistant_id = 'asst_IyXGpxWwdLrCmhvlmlYURn3K'
     st.session_state.history = [{'role': 'assistant', 'content': intro_message}]
     st.session_state.started = True
-    st.experimental_rerun()
+    st.rerun()
 else:
     # Display the chat history
     for message in st.session_state.history:
@@ -103,4 +103,4 @@ else:
                 st.session_state.history.append({'role': 'user', 'content': user_input})
                 st.session_state.history.append({'role': 'assistant', 'content': current_message.content[0].text.value})
             
-            st.experimental_rerun()
+            st.rerun()
