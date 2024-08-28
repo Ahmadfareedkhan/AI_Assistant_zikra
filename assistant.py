@@ -10,7 +10,7 @@ import streamlit as st
 load_dotenv()
 
 # Paste your OpenAI API key here!
-api_key = st.secrets["OPENAI_API_KEY"]
+api_key = st.secrets.openai.OPENAI_API_KEY
 client = OpenAI(api_key=api_key)
 
 # Paste your Assistant ID here!
