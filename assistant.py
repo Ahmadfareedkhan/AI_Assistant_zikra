@@ -1,8 +1,6 @@
 from openai import OpenAI
-import time, json, os, csv, re, smtplib
+import time, json, os, csv, re
 from dotenv import load_dotenv
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 import ssl
 import random
