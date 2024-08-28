@@ -11,7 +11,8 @@ import random
 load_dotenv()
 
 # Paste your OpenAI API key here!
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = st.scrects["OPENAI_API_KEY"]
+client = OpenAI(api_key=api_key)
 
 # Paste your Assistant ID here!
 assistant_id = "asst_1A3qfdoGOklFczibJiR7GnPg"
