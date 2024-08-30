@@ -248,12 +248,22 @@ def check_booking_availability():
 @Assistant.add_func
 def create_booking(name: str, email: str, time_slot: str):
     """
-    Create a booking for a call with a human representative.
+    Create a booking for a call with a human representative and save to a CSV file.
     name: string: The user's name.
     email: string: The user's email address.
     time_slot: string: The selected time slot for the call.
     """
-    # Implement booking creation logic here
+    filename = 'bookings.csv'
+    file_exists = os.path.isfile(filename)
+    
+    with open(filename, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        
+        if not file_exists:
+            writer.writerow(['Name', 'Email', 'Time Slot'])  # Write header if file is new
+        
+        writer.writerow([name, email, time_slot])
+    
     return json.dumps({
         "status": "success",
         "message": f"Booking created for {name} with {email} at {time_slot}"
@@ -262,12 +272,22 @@ def create_booking(name: str, email: str, time_slot: str):
 @Assistant.add_func
 def create_ticket(name: str, email: str, issue: str):
     """
-    Create a support ticket for complex inquiries.
+    Create a support ticket for complex inquiries and save to a CSV file.
     name: string: The user's name.
     email: string: The user's email address.
     issue: string: Detailed description of the user's complex issue.
     """
-    # Implement ticket creation logic here
+    filename = 'tickets.csv'
+    file_exists = os.path.isfile(filename)
+    
+    with open(filename, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        
+        if not file_exists:
+            writer.writerow(['Name', 'Email', 'Issue'])  # Write header if file is new
+        
+        writer.writerow([name, email, issue])
+    
     return json.dumps({
         "status": "success",
         "message": f"Ticket created for {name} with {email} regarding: {issue}"
