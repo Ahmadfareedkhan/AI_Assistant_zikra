@@ -1,60 +1,62 @@
 import streamlit as st
-import time
 from assistant import Assistant
-from dotenv import load_dotenv
-import os
+import time
 
-# Load environment variables
-load_dotenv()
+class StreamlitUI:
+    def __init__(self):
+        if "assistant" not in st.session_state:
+            st.session_state.assistant = Assistant()
+            st.session_state.assistant.create_thread()
+        self.ai = st.session_state.assistant
 
-# Initialize the Assistant class
-ai = Assistant()
-ai.create_thread()
+    def display_chat_history(self):
+        for sender, message in st.session_state.chat_history:
+            with st.chat_message(sender.lower()):
+                st.write(message)
 
-# Function to display chat history
-def get_chat_history():
-    history = ""
-    for sender, message in chat_history:
-        if sender == "You":
-            history += f"<div style='text-align: right;'><strong>{sender}:</strong> {message}</div>"
-        else:
-            history += f"<div><strong>{sender}:</strong> {message}</div>"
-    return history
+    def run(self):
+        st.set_page_config(page_title="ZikraInfoTech Frontdesk", page_icon="🤖", layout="wide")
+        st.title("Live Chat with ZikraInfoTech Frontdesk")
 
-# Main function for the Streamlit app
-def main():
-    global chat_history, message_placeholder
-    st.title("Live Chat with ZikraInfoTech Frontdesk")
+        # Initialize session state
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = []
 
-    # Initialize chat history and placeholder for messages
-    chat_history = []
-    message_placeholder = st.empty()
+        self.display_chat_history()
 
-    # Input field for user message
-    user_input = st.text_input("You: ", value="", max_chars=200, key="user_input")
+        user_input = st.chat_input("Type your message here...")
 
-    if st.button("Send"):
         if user_input:
-            # Append user's message to the chat history
-            chat_history.append(("You", user_input))
-            message_placeholder.markdown(get_chat_history(), unsafe_allow_html=True)
+            # Add user message to chat history
+            st.session_state.chat_history.append(("You", user_input))
+            
+            # Display user message
+            with st.chat_message("you"):
+                st.write(user_input)
 
-            # Send the user's message to the assistant and get the response
-            ai.add_message(user_input)
-            with st.spinner('Processing...'):
-                output, tokens = ai.assistant_api()
-                
-            # Append assistant's response to the chat history
-            chat_history.append(("Assistant", output))
-            message_placeholder.markdown(get_chat_history(), unsafe_allow_html=True)
+            # Get AI response
+            self.ai.add_message(user_input)
+            with st.chat_message("assistant"):
+                message_placeholder = st.empty()
+                message_placeholder.text("Thinking...")
+                output, tokens = self.ai.assistant_api()
+                message_placeholder.markdown(output)
 
-            st.write(f"Tokens Used: {tokens}")
+            # Add AI response to chat history
+            st.session_state.chat_history.append(("Assistant", output))
 
-    # Option to end the chat session
-    if st.button("End Chat"):
-        ai.delete_thread()
-        st.write("Chat session ended.")
-        st.stop()
+            # Display token usage
+            st.sidebar.text(f"Tokens Used: {tokens}")
+
+        # Option to end the chat session
+        if st.sidebar.button("End Chat"):
+            if "assistant" in st.session_state:
+                st.session_state.assistant.delete_thread()
+                del st.session_state.assistant
+            st.session_state.chat_history = []
+            st.sidebar.write("Chat session ended.")
+            st.rerun()
 
 if __name__ == "__main__":
-    main()
+    ui = StreamlitUI()
+    ui.run()

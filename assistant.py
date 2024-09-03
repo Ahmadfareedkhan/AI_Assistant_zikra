@@ -1,8 +1,7 @@
 from openai import OpenAI
-import time, json, os, csv, re
+import time, json, os, csv
 from dotenv import load_dotenv
 from dotenv import load_dotenv
-import ssl
 import random
 import streamlit as st
 
@@ -17,7 +16,7 @@ client = OpenAI(api_key=api_key)
 assistant_id = "asst_1A3qfdoGOklFczibJiR7GnPg"
 
 # Select your model!
-model = "gpt-4o"
+# model = "gpt-4o"
 
 class Assistant:
     functions = {"functions":[]}
@@ -28,7 +27,7 @@ class Assistant:
 
 
     def modify_assistant(self):
-        my_updated_assistant = client.beta.assistants.update(assistant_id=assistant_id,model=model, tools=self.functions["functions"])
+        my_updated_assistant = client.beta.assistants.update(assistant_id=assistant_id, tools=self.functions["functions"])
 
     # Threads
     def create_thread(self):
